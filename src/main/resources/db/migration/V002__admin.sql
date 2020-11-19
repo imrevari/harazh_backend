@@ -1,0 +1,1 @@
+insert into oblik_user (deleted, name, password, role) values (false, 'admin', '$2a$10$4L1E3pn9DxAbDMMpWBZ1r.uq6QYhKP/oAuD6vrJxu8DjxrPh1N6z2', 0);
