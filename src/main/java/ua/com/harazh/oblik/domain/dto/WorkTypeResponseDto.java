@@ -15,7 +15,7 @@ public class WorkTypeResponseDto {
 	
 	private WorkCategoryResponseDto workCategoryResponseDto;
 	
-
+	private Double salary;
 	
 	public WorkTypeResponseDto() {
 		super();
@@ -30,6 +30,7 @@ public class WorkTypeResponseDto {
 		this.description = workType.getDescription();
 		this.price = workType.getPrice();
 		this.workCategoryResponseDto = new WorkCategoryResponseDto(workType.getWorkCategory());
+		this.salary = workType.getSalary();
 	}
 
 
@@ -91,9 +92,13 @@ public class WorkTypeResponseDto {
 	public void setWorkCategoryResponseDto(WorkCategoryResponseDto workCategoryResponseDto) {
 		this.workCategoryResponseDto = workCategoryResponseDto;
 	}
-	
-	
-	
-	
 
+
+	public Double getSalary() {
+		return salary;
+	}
+
+	public void setSalary(Double salary) {
+		this.salary = salary;
+	}
 }

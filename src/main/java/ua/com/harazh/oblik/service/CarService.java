@@ -1,9 +1,6 @@
 package ua.com.harazh.oblik.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ua.com.harazh.oblik.domain.Car;
+import ua.com.harazh.oblik.domain.Customer;
 import ua.com.harazh.oblik.domain.dto.CreateCarDto;
 import ua.com.harazh.oblik.domain.dto.ResponseCarDto;
 import ua.com.harazh.oblik.domain.dto.UpdateCarDto;
@@ -40,7 +38,7 @@ public class CarService {
 
 	public List<ResponseCarDto> getAllCars() {
 		List<Car> listToReturn = carRepository.findAll();
-		
+		Collections.sort(listToReturn, (b, a) -> Integer.compare(a.getRepairOrders().size(), b.getRepairOrders().size()));
 		return carListToDtoOrNewList(listToReturn);
 	}
 
@@ -82,8 +80,12 @@ public class CarService {
 		
 		return new ResponseCarDto(toReturn);
 	}
-	
-	
+
+	public List<ResponseCarDto> getAllCarByCustomer(Customer customer) {
+
+		List<Car> cars = carRepository.findByCustomer(customer.getId());
+		return carListToDtoOrNewList(cars);
+	}
 	
 	
 	private Car updateAndSave(Optional<Car> carFromDb, UpdateCarDto createCarDto) {
@@ -100,12 +102,10 @@ public class CarService {
 		if (listToReturn.isEmpty()) {
 			return new ArrayList<ResponseCarDto>();
 		}
-		
 		return listToReturn.stream().map((e) -> new ResponseCarDto(e)).collect(Collectors.toList());
 	}
 
 	private ResponseCarDto carOptionalToDtoOrNull(Optional<Car> carToReturn) {
 		return carToReturn.map((e) -> new ResponseCarDto(e)).orElse(null);
 	}
-	
 }

@@ -16,7 +16,6 @@ public class PartCount {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-
 	//good connection
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "part_id")
@@ -29,12 +28,16 @@ public class PartCount {
 	@ManyToOne
 	@JoinColumn(name = "repair_order_id", nullable = false)
 	private RepairOrder repairOrder;
-	
-	
+
 	private String partName;
-	
-	
+
 	private Double retailPrice;
+
+	private Double purchasePrice;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "oblik_user_id")
+	private OblikUser oblikUser;
 	
 	
 
@@ -49,6 +52,8 @@ public class PartCount {
 		this.part = part;
 		this.amount = 1;
 		this.repairOrder = repairOrder;
+		this.purchasePrice = part.getPurchasePrice();
+		this.retailPrice = part.getRetailPrice();
 	}
 	
 	public PartCount(Part part, RepairOrder repairOrder, Integer amount) {
@@ -56,6 +61,8 @@ public class PartCount {
 		this.part = part;
 		this.amount = amount;
 		this.repairOrder = repairOrder;
+		this.purchasePrice = part.getPurchasePrice();
+		this.retailPrice = part.getRetailPrice();
 	}
 
 
@@ -130,13 +137,20 @@ public class PartCount {
 		this.retailPrice = retailPrice;
 	}
 
-	
-	
 
+	public Double getPurchasePrice() {
+		return purchasePrice;
+	}
 
-	
-	
-	
-	
+	public void setPurchasePrice(Double purchasePrice) {
+		this.purchasePrice = purchasePrice;
+	}
 
+	public OblikUser getOblikUser() {
+		return oblikUser;
+	}
+
+	public void setOblikUser(OblikUser oblikUser) {
+		this.oblikUser = oblikUser;
+	}
 }

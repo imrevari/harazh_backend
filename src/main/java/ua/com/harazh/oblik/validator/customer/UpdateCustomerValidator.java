@@ -31,13 +31,15 @@ private CustomerRepository customerRepository;
 	@Override
 	public void validate(Object target, Errors errors) {
 		UpdateCustomerDto updateCustomerDto = (UpdateCustomerDto) target;
-		
+
+		System.out.println(!Objects.isNull(updateCustomerDto.getFirstName()));
+		System.out.println(!Objects.isNull(updateCustomerDto.getLastName()));
+		System.out.println(!Objects.isNull(updateCustomerDto.getTelNumber()));
 		if(!Objects.isNull(updateCustomerDto.getFirstName()) && !Objects.isNull(updateCustomerDto.getLastName()) && !Objects.isNull(updateCustomerDto.getTelNumber()) ) {
 			Optional<Customer> customerInDb = customerRepository.findByFirstNameAndLastNameAndTelNumber(updateCustomerDto.getFirstName().trim(),
 					updateCustomerDto.getLastName().trim(), updateCustomerDto.getTelNumber().trim());
-			
-			if(customerInDb.isPresent() && (customerInDb.get().getId() != updateCustomerDto.getId()) ) {
-//				System.out.println("I was called " + updateCustomerDto.getId());
+
+			if(customerInDb.isPresent() && !(customerInDb.get().getId().equals(updateCustomerDto.getId())) ) {
 				errors.rejectValue("firstName", "cust.alreadyExists");
 			}
 		}

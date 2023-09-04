@@ -1,9 +1,6 @@
 package ua.com.harazh.oblik.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ua.com.harazh.oblik.domain.Customer;
 import ua.com.harazh.oblik.domain.dto.CreateCustomerDto;
+import ua.com.harazh.oblik.domain.dto.ResponseCarDto;
 import ua.com.harazh.oblik.domain.dto.ResponseCustomerDto;
 import ua.com.harazh.oblik.domain.dto.UpdateCustomerDto;
 import ua.com.harazh.oblik.exception.ExceptionWithMessage;
@@ -26,6 +24,8 @@ public class CustomerService {
 	
 	
 	private CustomerRepository customerRepository;
+
+	private CarService carService;
 	
 	@Value("${cust.wrongId}")
 	private String wrongCustomerIdMessage;
@@ -34,9 +34,10 @@ public class CustomerService {
 	private String customerAlreadyExistsMessage;
 
 	@Autowired
-	public CustomerService(CustomerRepository customerRepository) {
+	public CustomerService(CustomerRepository customerRepository, CarService carService) {
 		super();
 		this.customerRepository = customerRepository;
+		this.carService = carService;
 	}
 
 	public ResponseCustomerDto createNewCustomer(CreateCustomerDto createCustomerDto) {
@@ -50,8 +51,15 @@ public class CustomerService {
 	public List<ResponseCustomerDto> getAllCustomer() {
 		
 		List<Customer> listOfCustomers = customerRepository.findAll();
-
+		Collections.sort(listOfCustomers, (a, b) -> Integer.compare(b.getRepairOrders().size(), a.getRepairOrders().size()));
+		
 		return entityListToDtoOrNewList(listOfCustomers);
+	}
+
+	public List<ResponseCustomerDto> getAllCustomerWithCars() {
+		List<Customer> listOfCustomers = customerRepository.findAll();
+		Collections.sort(listOfCustomers, (a, b) -> Integer.compare(b.getRepairOrders().size(), a.getRepairOrders().size()));
+		return entityListToDtoWithCarsOrNewList(listOfCustomers);
 	}
 	
 	public List<ResponseCustomerDto> findCustomersByName(String name) {
@@ -63,12 +71,21 @@ public class CustomerService {
 	
 	public ResponseCustomerDto findCustomersById(Long id) {
 		Optional<Customer> optional = customerRepository.findById(id);
-		
 		if (!optional.isPresent()) {
 			return null;
 		}
-		
 		return new ResponseCustomerDto(optional.get());
+	}
+
+	public ResponseCustomerDto findCustomersWithCarsById(Long id) {
+		Optional<Customer> optional = customerRepository.findById(id);
+		if (!optional.isPresent()) {
+			return null;
+		}
+		ResponseCustomerDto responseCustomerDto = new ResponseCustomerDto(optional.get());
+		List<ResponseCarDto> cars = carService.getAllCarByCustomer(optional.get());
+		responseCustomerDto.setListOfCars(cars);
+		return responseCustomerDto;
 	}
 	
 	public ResponseCustomerDto updateCustomer(Long id, UpdateCustomerDto updateCustomerDto) {
@@ -90,7 +107,7 @@ public class CustomerService {
 		Optional<Customer> customerInDb = customerRepository.findByFirstNameAndLastNameAndTelNumber(customer.getFirstName(),
 				customer.getLastName(), customer.getTelNumber());
 		
-		if(customerInDb.isPresent() && (customerInDb.get().getId() != updateCustomerDto.getId())) {		
+		if(customerInDb.isPresent() && !(customerInDb.get().getId().equals(updateCustomerDto.getId()))) {
 			throw new ExceptionWithMessage(customerAlreadyExistsMessage, "firstName");
 		}
 				
@@ -98,17 +115,28 @@ public class CustomerService {
 		
 		return new ResponseCustomerDto(toReturn);
 	}
-	
-	
-	
-	
-	
+
 	private List<ResponseCustomerDto> entityListToDtoOrNewList(List<Customer> listOfCustomers){
 		if (listOfCustomers.isEmpty()) {
 			return new ArrayList<ResponseCustomerDto>();
 		}
-		
+
 		return listOfCustomers.stream().map((e) -> new ResponseCustomerDto(e)).collect(Collectors.toList());
+	}
+
+	private List<ResponseCustomerDto> entityListToDtoWithCarsOrNewList(List<Customer> listOfCustomers){
+		if (listOfCustomers.isEmpty()) {
+			return new ArrayList<ResponseCustomerDto>();
+		}
+		return listOfCustomers.stream().map(
+				(e) ->
+				{
+					ResponseCustomerDto responseCustomerDto = new ResponseCustomerDto(e);
+					List<ResponseCarDto> cars = carService.getAllCarByCustomer(e);
+					responseCustomerDto.setListOfCars(cars);
+					return responseCustomerDto;
+				}
+		).collect(Collectors.toList());
 	}
 
 	

@@ -57,7 +57,7 @@ public class CarController {
 	
 
 	@GetMapping
-	public ResponseEntity<List<ResponseCarDto>> getAllPartsWithRetailPrice() {
+	public ResponseEntity<List<ResponseCarDto>> getAllCars() {
         List<ResponseCarDto> carListItems = carService.getAllCars();
 
         return new ResponseEntity<>(carListItems, HttpStatus.OK);
@@ -95,6 +95,7 @@ public class CarController {
 	
 	
 	@PostMapping
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<ResponseCarDto> createNewCar(@Valid @RequestBody CreateCarDto createCarDto) {
 		
 		ResponseCarDto carToReturn = carService.save(createCarDto);
@@ -107,7 +108,7 @@ public class CarController {
     }
 	
 	@PutMapping("/{carId}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<ResponseCarDto> updateCar(@Valid @RequestBody UpdateCarDto updateCarDto, @PathVariable Long carId) {
 		
 		ResponseCarDto carToReturn = carService.updateCar(updateCarDto, carId);
@@ -117,7 +118,7 @@ public class CarController {
 	
 	
 	@DeleteMapping("/{carId}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<?> deleteCar(@PathVariable Long carId) {
 		
 		//TODO write code

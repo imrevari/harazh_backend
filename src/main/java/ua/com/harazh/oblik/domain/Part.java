@@ -1,12 +1,9 @@
 package ua.com.harazh.oblik.domain;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 import ua.com.harazh.oblik.domain.dto.CreatePartPurchasePriceDto;
+import ua.com.harazh.oblik.domain.dto.PartSupplier;
 
 @Entity
 public class Part {
@@ -23,8 +20,13 @@ public class Part {
 	
 	@Column(nullable = false)
 	private Double retailPrice;
-	
+
+	@Column(nullable = false)
 	private Double purchasePrice;
+
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "part_supplier_id")
+	private PartSupplier partSupplier;
 	
 
 	public Part() {
@@ -85,8 +87,12 @@ public class Part {
 	public void setPurchasePrice(Double purchasePrice) {
 		this.purchasePrice = purchasePrice;
 	}
-	
-	
-	
 
+	public PartSupplier getPartSupplier() {
+		return partSupplier;
+	}
+
+	public void setPartSupplier(PartSupplier partSupplier) {
+		this.partSupplier = partSupplier;
+	}
 }

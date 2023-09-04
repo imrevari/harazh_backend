@@ -41,7 +41,7 @@ public class PartController {
 	
 	
 	@PostMapping
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
     public ResponseEntity<PurchasePartResponseDto> createNewPart(@Valid @RequestBody CreatePartPurchasePriceDto partDto) {
 		PurchasePartResponseDto partToReturn = partService.save(partDto);
     
@@ -84,7 +84,7 @@ public class PartController {
 	}
 
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<PurchasePartResponseDto> updatePart(@RequestBody UpdatePartPurchasePriceDto createPartPurchasePriceDto, @PathVariable Long id){
 		
 		PurchasePartResponseDto part = partService.updatePart(createPartPurchasePriceDto, id);
@@ -93,7 +93,7 @@ public class PartController {
 	}
 	
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<?> deletePart(@PathVariable Long carId){
 		//TODO write code
 

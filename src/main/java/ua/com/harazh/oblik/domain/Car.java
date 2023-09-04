@@ -1,12 +1,10 @@
 package ua.com.harazh.oblik.domain;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 import ua.com.harazh.oblik.domain.dto.CreateCarDto;
+
+import java.util.List;
 
 @Entity
 public class Car {
@@ -21,6 +19,9 @@ public class Car {
 	private String licencePlate;
 	
 	private String carMade;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "car")
+	private List<RepairOrder> repairOrders;
 	
 
 	public Car() {
@@ -78,10 +79,12 @@ public class Car {
 	public void setId(Long id) {
 		this.id = id;
 	}
-	
-	
-	
-	
-	
 
+	public List<RepairOrder> getRepairOrders() {
+		return repairOrders;
+	}
+
+	public void setRepairOrders(List<RepairOrder> repairOrders) {
+		this.repairOrders = repairOrders;
+	}
 }

@@ -1,9 +1,7 @@
 package ua.com.harazh.oblik.controller;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.time.LocalDateTime;
+import java.util.*;
 
 import javax.validation.Valid;
 
@@ -26,11 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import ua.com.harazh.oblik.domain.Role;
-import ua.com.harazh.oblik.domain.dto.ChangePasswordDto;
-import ua.com.harazh.oblik.domain.dto.ResponseCompletedWorkDto;
-import ua.com.harazh.oblik.domain.dto.UpdateUserDto;
-import ua.com.harazh.oblik.domain.dto.UserCreationDto;
-import ua.com.harazh.oblik.domain.dto.UserResponseDto;
+import ua.com.harazh.oblik.domain.dto.*;
 import ua.com.harazh.oblik.security.AuthenticatedUserDetails;
 import ua.com.harazh.oblik.service.UserService;
 import ua.com.harazh.oblik.validator.user.ChangePasswordValidator;
@@ -48,7 +42,6 @@ public class UserController {
 	private UpdatingUserValidator updatingUserValidator;
 	
 	private ChangePasswordValidator changePasswordValidator;
-	
 
 	@Autowired
 	public UserController(UserService userService, CreatingUserValidator creatingUserValidator,
@@ -160,7 +153,7 @@ public class UserController {
 	}
 	
 	@PostMapping("/{userId}/{workId}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<?> assignUserToWork(@PathVariable Long userId, @PathVariable Long workId) {
 		
 		userService.assignUserToWork(userId, workId);
@@ -195,9 +188,17 @@ public class UserController {
 	public ResponseEntity<List<ResponseCompletedWorkDto>> getUsersCompletedWorkbyId(@PathVariable Long userId){
 		
 		List<ResponseCompletedWorkDto> listToReturn = userService.getResponseCompletedWorkDtoByUserId(userId);
-		
+
 		return new ResponseEntity<>(listToReturn, HttpStatus.OK);
 	}
-	
+
+	@PostMapping("/report")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public ResponseEntity<List<ResponseCompletedWorkDto>> getCompletedWorksByParameters(@RequestBody UsersAndTimeframeDto usersAndTimeframeDto){
+
+		List<ResponseCompletedWorkDto> listToReturn = userService.getCompletedWorksByUsersBetweenDates(usersAndTimeframeDto);
+
+		return new ResponseEntity<>(listToReturn, HttpStatus.OK);
+	}
 
 }

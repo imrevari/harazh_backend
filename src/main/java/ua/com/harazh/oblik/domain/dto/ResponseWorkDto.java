@@ -17,40 +17,26 @@ public class ResponseWorkDto {
 	private boolean workDone;
 	
 	private String userName;
-	
-	
+
 	public ResponseWorkDto() {
 		super();
 	}
 
-	
-	
-
-
 	public ResponseWorkDto(Work work) {
 		super();
 		this.id = work.getId();
-		
+		this.workName = work.getWorkName();
+		this.price = work.getPrice();
+		this.workDone = work.isWorkDone();
 		if (!Objects.isNull(work.getWorkType() )) {
-			this.workName = work.getWorkType().getName();
-			this.price = work.getWorkType().getPrice();
 			this.description = work.getWorkType().getDescription();
-		}else {
-			this.workName = work.getWorkName();
-			this.price = work.getPrice();
+		}else{
 			this.description = "";
 		}
-		
-		this.workDone = work.isWorkDone();
-		
 		if (!Objects.isNull(work.getOblikUser()) ) {
 			this.userName = work.getOblikUser().getName();
 		}
 	}
-
-
-
-
 
 	public Long getId() {
 		return id;

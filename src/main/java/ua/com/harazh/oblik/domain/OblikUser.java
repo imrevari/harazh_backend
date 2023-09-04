@@ -8,6 +8,8 @@ import javax.persistence.Id;
 
 import ua.com.harazh.oblik.domain.dto.UserCreationDto;
 
+import java.util.Objects;
+
 @Entity
 public class OblikUser {
 	
@@ -26,6 +28,9 @@ public class OblikUser {
 	
 	private boolean deleted;
 
+	@Column(nullable = false)
+	private Double percentage;
+
 	public OblikUser() {
 		super();
 	}
@@ -35,8 +40,17 @@ public class OblikUser {
 	public OblikUser(UserCreationDto dto) {
 		super();
 		this.name = dto.getName().trim();
-		this.role = Role.ROLE_USER;
+		this.role = Role.ROLE_JUNIOR_USER;
 		this.deleted = false;
+		if(Objects.isNull(dto.getPercentage())){
+			this.percentage = 0.5d;
+		}else{
+			if(dto.getPercentage() < 0d || dto.getPercentage() > 1){
+				this.percentage = 0.5d;
+			}else{
+				this.percentage = (double) Math.round(dto.getPercentage() * 100) / 100 ;
+			}
+		}
 	}
 
 
@@ -84,8 +98,12 @@ public class OblikUser {
 	public void setDeleted(boolean deleted) {
 		this.deleted = deleted;
 	}
-	
-	
-	
 
+	public Double getPercentage() {
+		return percentage;
+	}
+
+	public void setPercentage(Double percentage) {
+		this.percentage = percentage;
+	}
 }

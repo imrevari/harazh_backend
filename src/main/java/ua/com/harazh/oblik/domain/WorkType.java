@@ -11,6 +11,8 @@ import javax.persistence.ManyToOne;
 
 import ua.com.harazh.oblik.domain.dto.CreateWorkTypeDto;
 
+import java.util.Objects;
+
 @Entity
 public class WorkType {
 	
@@ -33,6 +35,8 @@ public class WorkType {
 	@JoinColumn(name = "work_category_id")
 	private WorkCategory workCategory;
 	
+	private Double salary;
+
 
 	public WorkType() {
 		super();
@@ -45,9 +49,12 @@ public class WorkType {
 		this.name = dto.getName().trim();
 		this.description = dto.getDescription();
 		this.price = dto.getPrice();
+		if(Objects.isNull(dto.getSalary())){
+			this.salary = null;
+		}else{
+			this.salary = dto.getSalary();
+		}
 	}
-
-
 
 	public Long getId() {
 		return id;
@@ -83,8 +90,6 @@ public class WorkType {
 		this.name = name;
 	}
 
-
-
 	public WorkCategory getWorkCategory() {
 		return workCategory;
 	}
@@ -92,5 +97,12 @@ public class WorkType {
 	public void setWorkCategory(WorkCategory workCategory) {
 		this.workCategory = workCategory;
 	}
-	
+
+	public Double getSalary() {
+		return salary;
+	}
+
+	public void setSalary(Double salary) {
+		this.salary = salary;
+	}
 }
