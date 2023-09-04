@@ -36,7 +36,7 @@ public class WorkTypeController {
 	}
 	
 	@PostMapping
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<WorkTypeResponseDto> createNewWorkType(@Valid @RequestBody CreateWorkTypeDto workTypeDto) {
 		
 		WorkTypeResponseDto toReturn =  workTypeService.createNewWorkType(workTypeDto);
@@ -52,7 +52,7 @@ public class WorkTypeController {
 	}
 	
 	@GetMapping("/{id}")
-	public ResponseEntity<WorkTypeResponseDto> geWorkTypeById(@PathVariable Long id){
+	public ResponseEntity<WorkTypeResponseDto> getWorkTypeById(@PathVariable Long id){
 		WorkTypeResponseDto toReturn = workTypeService.getWorkTypeById(id);
 		
 		if (Objects.isNull(toReturn)) {
@@ -63,7 +63,7 @@ public class WorkTypeController {
 	}
 	
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<WorkTypeResponseDto> updateWorkType(@Valid @RequestBody UpdateWorkTypeDto workTypeDto, @PathVariable Long id){
 		
 		WorkTypeResponseDto response = workTypeService.updateWorkType(workTypeDto, id);
@@ -76,10 +76,9 @@ public class WorkTypeController {
 	}
 	
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public ResponseEntity<?> deleteWorkType(@PathVariable Long carId){
-		//TODO write code
-
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
+	public ResponseEntity<?> deleteWorkType(@PathVariable Long id){
+		boolean deleted = workTypeService.deleteWorkType(id);
         return new ResponseEntity<>( HttpStatus.OK);
 	} 
 	

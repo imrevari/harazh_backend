@@ -2,6 +2,8 @@ package ua.com.harazh.oblik.domain.dto;
 
 import ua.com.harazh.oblik.domain.Customer;
 
+import java.util.List;
+
 public class ResponseCustomerDto {
 	
 	
@@ -15,11 +17,11 @@ public class ResponseCustomerDto {
 	
 	private String email;
 
+	private List<ResponseCarDto> listOfCars;
+
 	public ResponseCustomerDto() {
 		super();
 	}
-	
-	
 
 	public ResponseCustomerDto(Customer customer) {
 		super();
@@ -29,8 +31,6 @@ public class ResponseCustomerDto {
 		this.telNumber = customer.getTelNumber();
 		this.email = customer.getEmail();
 	}
-
-
 
 	public Long getId() {
 		return id;
@@ -71,8 +71,12 @@ public class ResponseCustomerDto {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-	
-	
-	
 
+	public List<ResponseCarDto> getListOfCars() {
+		return listOfCars;
+	}
+
+	public void setListOfCars(List<ResponseCarDto> listOfCars) {
+		this.listOfCars = listOfCars;
+	}
 }

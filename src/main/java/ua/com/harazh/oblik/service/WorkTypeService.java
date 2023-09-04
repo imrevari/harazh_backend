@@ -29,7 +29,9 @@ public class WorkTypeService {
 	
 	private WorkTypeRepository workTypeRepository;
 	
-	private WorkCategoryRepository workCategoryRepository; 
+	private WorkCategoryRepository workCategoryRepository;
+
+	private WorkService workService;
 	
 	@Value("${work.wrongId}")
 	private String wrongWorkIdMessage;
@@ -37,10 +39,12 @@ public class WorkTypeService {
 	
 	
 	@Autowired
-	public WorkTypeService(WorkTypeRepository workTypeRepository, WorkCategoryRepository workCategoryRepository) {
+	public WorkTypeService(WorkTypeRepository workTypeRepository, WorkCategoryRepository workCategoryRepository,
+						   WorkService workService) {
 		super();
 		this.workTypeRepository = workTypeRepository;
 		this.workCategoryRepository = workCategoryRepository;
+		this.workService = workService;
 	}
 
 
@@ -95,6 +99,17 @@ public class WorkTypeService {
 		
 		return new WorkTypeResponseDto(optional.get());
 	}
+
+	public boolean deleteWorkType(Long id) {
+		Optional<WorkType> optional = workTypeRepository.findById(id);
+
+		if(!optional.isPresent()) {
+			throw new ExceptionWithMessage(wrongWorkIdMessage, "name");
+		}
+		workService.removeWorkCategoriesFromWorks(optional.get());
+		workTypeRepository.delete(optional.get());
+		return true;
+	}
 	
 	
 	private WorkType updateAndSave(Optional<WorkType> optional, UpdateWorkTypeDto workTypeDto) {
@@ -102,16 +117,12 @@ public class WorkTypeService {
 		if (!Objects.isNull(workTypeDto.getName())) { workType.setName(workTypeDto.getName().trim());}
 		if (!Objects.isNull(workTypeDto.getDescription())) { workType.setDescription(workTypeDto.getDescription());}
 		if (!Objects.isNull(workTypeDto.getPrice())) { workType.setPrice(workTypeDto.getPrice());}
-		
+		if (!Objects.isNull(workTypeDto.getSalary())) { workType.setSalary(workTypeDto.getSalary());}
 		if (!Objects.isNull(workTypeDto)) {
 			Optional<WorkCategory> workCategoryOptional = workCategoryRepository.findById(workTypeDto.getWorkCategory());
 			workType.setWorkCategory(workCategoryOptional.get());}
 
 		return workTypeRepository.save(workType);
 	}
-
-
-
-
 
 }

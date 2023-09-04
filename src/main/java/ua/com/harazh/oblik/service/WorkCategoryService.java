@@ -75,8 +75,9 @@ public class WorkCategoryService {
 		return new WorkCategoryResponseDto(optional.get());
 	}
 
-	
-	
-	
 
+    public boolean deleteWorkCategory(Long id) {
+
+		return false;
+    }
 }

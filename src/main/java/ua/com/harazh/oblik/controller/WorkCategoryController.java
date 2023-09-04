@@ -35,7 +35,7 @@ public class WorkCategoryController {
 	
 	
 	@PostMapping
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<WorkCategoryResponseDto> createNewWorkCategory(@Valid @RequestBody CreateWorkCategoryDto workCategoryDto) {
 		
 		WorkCategoryResponseDto toReturn =  workCategoryService.createNewWorkCategory(workCategoryDto);
@@ -61,7 +61,7 @@ public class WorkCategoryController {
         return new ResponseEntity<>(toReturn, HttpStatus.OK);
 	}
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<WorkCategoryResponseDto> updateWorkCategory(@RequestBody UpdateWorkCategoryDto workCategoryDto, @PathVariable Long id){
 		
 		WorkCategoryResponseDto response = workCategoryService.updateWorkCategory(workCategoryDto, id);
@@ -74,10 +74,10 @@ public class WorkCategoryController {
 	}
 	
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public ResponseEntity<?> deleteWorkType(@PathVariable Long carId){
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
+	public ResponseEntity<?> deleteWorkType(@PathVariable Long id){
 		//TODO write code
-
+		boolean deleted = workCategoryService.deleteWorkCategory(id);
         return new ResponseEntity<>( HttpStatus.OK);
 	} 
 

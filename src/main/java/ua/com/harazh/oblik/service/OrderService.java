@@ -20,9 +20,7 @@ import ua.com.harazh.oblik.domain.Part;
 import ua.com.harazh.oblik.domain.PartCount;
 import ua.com.harazh.oblik.domain.RepairOrder;
 import ua.com.harazh.oblik.domain.Work;
-import ua.com.harazh.oblik.domain.dto.AddPartCountDto;
-import ua.com.harazh.oblik.domain.dto.CreateOrderDto;
-import ua.com.harazh.oblik.domain.dto.ResponseOrderDto;
+import ua.com.harazh.oblik.domain.dto.*;
 import ua.com.harazh.oblik.exception.ExceptionWithMessage;
 import ua.com.harazh.oblik.repository.CarRepository;
 import ua.com.harazh.oblik.repository.CustomerRepository;
@@ -69,6 +67,9 @@ public class OrderService {
 	
 	@Value("${part.orderClosed}")
 	private String orderClosedMessage;
+
+	@Value( "${work.cementBeforeDone}" )
+	private boolean CEMENT_BEFORE_DONE;
 
 	@Autowired
 	public OrderService(OrderRepository orderRepository, CarRepository carRepository,
@@ -119,7 +120,7 @@ public class OrderService {
 		
 		ifCarExists(id);
 		
-		List<RepairOrder> listOfOrders = orderRepository.findByCarId(id);
+		List<RepairOrder> listOfOrders = orderRepository.findByCarIdOrderByOrderOpenedDesc(id);
 		
 		if(listOfOrders.isEmpty()) {
 			return new ArrayList<ResponseOrderDto>(); 
@@ -158,7 +159,7 @@ public class OrderService {
 
 		ifCustomerExists(id);
 		
-		List<RepairOrder> listOfOrders = orderRepository.findByCustomerId(id);
+		List<RepairOrder> listOfOrders = orderRepository.findByCustomerIdOrderByOrderOpenedDesc(id);
 		
 		if(listOfOrders.isEmpty()) {
 			return new ArrayList<ResponseOrderDto>(); 
@@ -181,14 +182,35 @@ public class OrderService {
 		return listOfOrders.stream().map((e) -> new ResponseOrderDto(e)).collect(Collectors.toList());
 	}
 	
-	public List<ResponseOrderDto> getLastTenOpenedOrders() {
+	public List<ResponseOrderDto> getAllOpenedOrders() {
 		
-		List<RepairOrder> listOfOrders = orderRepository.findLastTenOpenedOrders();
+		List<RepairOrder> listOfOrders = orderRepository.findAllOpenedOrders();
 		
 		if(listOfOrders.isEmpty()) {
 			return new ArrayList<ResponseOrderDto>(); 
 		}
 		
+		return listOfOrders.stream().map((e) -> new ResponseOrderDto(e)).collect(Collectors.toList());
+	}
+
+	public List<ResponseOrderDto> getAllClosedUnpaidOrders() {
+
+		List<RepairOrder> listOfOrders = orderRepository.findAllUnpaidClosedOrders();
+
+		if(listOfOrders.isEmpty()) {
+			return new ArrayList<ResponseOrderDto>();
+		}
+
+		return listOfOrders.stream().map((e) -> new ResponseOrderDto(e)).collect(Collectors.toList());
+	}
+
+	public List<ResponseOrderDto> getAllOrdersBetweenDates(BetweenDatesDto betweenDatesDto) {
+
+		List<RepairOrder> listOfOrders = orderRepository.findAllByOrderOpenedBetweenOrderByOrderOpenedDesc(LocalDateTime.parse(betweenDatesDto.getFromDate()),
+				LocalDateTime.parse(betweenDatesDto.getToDate()));
+		if(listOfOrders.isEmpty()) {
+			return new ArrayList<ResponseOrderDto>();
+		}
 		return listOfOrders.stream().map((e) -> new ResponseOrderDto(e)).collect(Collectors.toList());
 	}
 
@@ -233,7 +255,7 @@ public class OrderService {
 		
 		// if part exists, update it
 		for(PartCount partCount : order.getPartCounts()) {
-			if(partCount.getPart().getId() == addPartCountDto.getPartId()) {
+			if(partCount.getPart().getId().equals(addPartCountDto.getPartId())) {
 				partCountService.increaseAmount(partCount, addPartCountDto.getAmount());
 				return new ResponseOrderDto(order);
 			}
@@ -296,11 +318,11 @@ public class OrderService {
 	public ResponseOrderDto removeWork(Long orderId, Long workId) {
 		
 		RepairOrder order = getOrderById(orderId);
-		
+
 		List<Work> copyOfWorks = new ArrayList<>();
 		copyOfWorks.addAll(order.getWorks());				
 		for(Work work : copyOfWorks) {
-			if(work.getId() == workId) {
+			if(work.getId().equals(workId)) {
 				order.getWorks().remove(work);
 				workRepository.delete(work);
 			}
@@ -315,7 +337,7 @@ public class OrderService {
 		parts.addAll(order.getPartCounts());
 		
 		for(PartCount part : parts){
-			if(part.getId() == partId) {
+			if(part.getId().equals(partId)) {
 				order.getPartCounts().remove(part);
 				partCountRepository.delete(part);
 			}
@@ -330,15 +352,15 @@ public class OrderService {
 		Optional<OblikUser> user = userRepository.findByName(username);
 		
 		for (Work work : order.getWorks()) {
-			if (work.getId() == workId) {
+			if (work.getId().equals(workId)) {
 				work.setWorkDone(true);
+				work.setDoneAt(LocalDateTime.now());
 				work.setOblikUser(user.get());
 				workRepository.save(work);
 //				workService.setWorkDone(workId);
 				return new ResponseOrderDto(order);
 			}
 		}
-		
 		return null;
 	}
 
@@ -346,12 +368,22 @@ public class OrderService {
 	public ResponseOrderDto getOrderDtoById(Long id) {
 		
 		return new ResponseOrderDto(getOrderById(id));
-	}	
+	}
+
+	public ResponseOrderDto updateDescription(Long orderId, UpdateDescriptionDto updateDescriptionDto) {
+		RepairOrder repairOrder = getOrderById(orderId);
+		repairOrder.setProblem(updateDescriptionDto.getProblem());
+		return new ResponseOrderDto(orderRepository.save(repairOrder));
+	}
 	
 	private void closeAllWorks(RepairOrder order) {
-		for(Work work : order.getWorks()) {
-			workService.setWorkTypeToNullAndCopyData(work);
+		//other will be here
+		if(!CEMENT_BEFORE_DONE) {
+			for (Work work : order.getWorks()) {
+				workService.copyDataFromWorkType(work);
+			}
 		}
+
 		
 	}
 
@@ -412,7 +444,8 @@ public class OrderService {
 		
 		for(Work work : repairOrder.getWorks()) {
 			if (work.isWorkDone()) {
-				toReturn += work.getWorkType().getPrice();
+
+				toReturn += CEMENT_BEFORE_DONE ? work.getPrice() :work.getWorkType().getPrice();
 			}
 		}
 		return toReturn;
@@ -448,6 +481,6 @@ public class OrderService {
 		
 	}
 
-	
+
 
 }

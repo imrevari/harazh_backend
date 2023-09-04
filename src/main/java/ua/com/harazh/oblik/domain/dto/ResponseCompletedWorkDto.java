@@ -3,6 +3,8 @@ package ua.com.harazh.oblik.domain.dto;
 
 import ua.com.harazh.oblik.domain.Work;
 
+import java.util.Objects;
+
 public class ResponseCompletedWorkDto {
 	
 	
@@ -15,6 +17,10 @@ public class ResponseCompletedWorkDto {
 	private Long orderId;
 	
 	private String orderClosed;
+
+	private String userName;
+
+	private Double salary;
 	
 	public ResponseCompletedWorkDto() {
 		super();
@@ -23,9 +29,11 @@ public class ResponseCompletedWorkDto {
 	public ResponseCompletedWorkDto(Work work, ResponseOrderDto responseOrderDto) {
 		this.workName = work.getWorkName();
 		this.price = work.getPrice();
-		this.licencePlate = responseOrderDto.getCar().getLicencePlate();
+		this.licencePlate = responseOrderDto.getCar().getCarMade();
 		this.orderId = responseOrderDto.getId();
-		this.orderClosed = responseOrderDto.getOrderClosed();
+		this.orderClosed = Objects.isNull(work.getDoneAt()) ? responseOrderDto.getOrderOpened() : work.getDoneAt().toString();
+		this.userName = work.getOblikUser().getName();
+		this.salary = work.getSalary();
 	}
 	
 
@@ -68,8 +76,20 @@ public class ResponseCompletedWorkDto {
 	public void setOrderClosed(String orderClosed) {
 		this.orderClosed = orderClosed;
 	}
-	
-	
-	
 
+	public String getUserName() {
+		return userName;
+	}
+
+	public void setUserName(String userName) {
+		this.userName = userName;
+	}
+
+	public Double getSalary() {
+		return salary;
+	}
+
+	public void setSalary(Double salary) {
+		this.salary = salary;
+	}
 }

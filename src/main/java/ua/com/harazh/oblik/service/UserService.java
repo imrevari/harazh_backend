@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,11 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ua.com.harazh.oblik.domain.OblikUser;
 import ua.com.harazh.oblik.domain.Role;
-import ua.com.harazh.oblik.domain.dto.ChangePasswordDto;
-import ua.com.harazh.oblik.domain.dto.ResponseCompletedWorkDto;
-import ua.com.harazh.oblik.domain.dto.UpdateUserDto;
-import ua.com.harazh.oblik.domain.dto.UserCreationDto;
-import ua.com.harazh.oblik.domain.dto.UserResponseDto;
+import ua.com.harazh.oblik.domain.dto.*;
 import ua.com.harazh.oblik.exception.ExceptionWithMessage;
 import ua.com.harazh.oblik.repository.UserRepository;
 
@@ -67,7 +64,8 @@ public class UserService {
 		OblikUser oblikUser = getUserByidOrThrowError(id);
 		
 		if(!Objects.isNull(userCreatonDto.getRole())) oblikUser.setRole(Role.valueOf(userCreatonDto.getRole().toString()));
-		if(!Objects.isNull(userCreatonDto.getName())) oblikUser.setName(userCreatonDto.getName());	
+		if(!Objects.isNull(userCreatonDto.getName())) oblikUser.setName(userCreatonDto.getName());
+		if(!Objects.isNull(userCreatonDto.getPercentage())) oblikUser.setPercentage(userCreatonDto.getPercentage());
 		
 		OblikUser newUser = userRepository.save(oblikUser);
 		
@@ -130,13 +128,20 @@ public class UserService {
 	public List<ResponseCompletedWorkDto>  getResponseCompletedWorkDtoByUser(UserDetails username) {
 	
 		OblikUser user = getOblikUserByUserDetails(username);
-		return workService.getAllClosedDoneWorksByUser(user);
+		return workService.getAllDoneWorksByUser(user);
 	}
 	
 	public List<ResponseCompletedWorkDto>  getResponseCompletedWorkDtoByUserId(Long id) {
 		
 		OblikUser user = getUserByidOrThrowError(id);
-		return workService.getAllClosedDoneWorksByUser(user);
+		return workService.getAllDoneWorksByUser(user);
+	}
+
+	public List<ResponseCompletedWorkDto> getCompletedWorksByUsersBetweenDates(UsersAndTimeframeDto usersAndTimeframeDto) {
+		List<OblikUser> users = usersAndTimeframeDto.getUsers().stream().map((e) ->
+				getUserByidOrThrowError(e)).collect(Collectors.toList());
+
+		return workService.getAllDoneWorksByUsersAndDates(users, usersAndTimeframeDto);
 	}
 	
     
@@ -154,10 +159,7 @@ public class UserService {
 		
 		return optional.get();
 	}
-	
-	
-	
-	
-	
+
+
 
 }

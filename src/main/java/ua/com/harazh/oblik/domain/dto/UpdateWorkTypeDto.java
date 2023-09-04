@@ -14,7 +14,9 @@ public class UpdateWorkTypeDto {
 	private Double price;
 	
 	@NotNull(message = "{workCategoryName.notNull}")
-	private Long workCategory; 
+	private Long workCategory;
+
+	private Double salary;
 
 	public UpdateWorkTypeDto() {
 		super();
@@ -51,7 +53,12 @@ public class UpdateWorkTypeDto {
 	public void setWorkCategory(Long workCategory) {
 		this.workCategory = workCategory;
 	}
-	
-	
 
+	public Double getSalary() {
+		return salary;
+	}
+
+	public void setSalary(Double salary) {
+		this.salary = salary;
+	}
 }

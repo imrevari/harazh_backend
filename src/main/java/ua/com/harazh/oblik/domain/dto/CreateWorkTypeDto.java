@@ -16,7 +16,7 @@ public class CreateWorkTypeDto {
 	@NotNull(message = "{workCategoryName.notNull}")
 	private Long workCategory; 
 	
-	
+	private Double salary;
 
 	public CreateWorkTypeDto() {
 		super();
@@ -69,8 +69,12 @@ public class CreateWorkTypeDto {
 	public void setWorkCategory(Long workCategory) {
 		this.workCategory = workCategory;
 	}
-	
-	
-	
-	
+
+	public Double getSalary() {
+		return salary;
+	}
+
+	public void setSalary(Double salary) {
+		this.salary = salary;
+	}
 }

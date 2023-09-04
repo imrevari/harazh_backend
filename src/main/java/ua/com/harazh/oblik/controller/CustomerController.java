@@ -59,6 +59,7 @@ public class CustomerController {
 
 
 	@PostMapping
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<ResponseCustomerDto> createNewCustomer(@Valid @RequestBody CreateCustomerDto createCustomerDto){
 		
 		ResponseCustomerDto responseCustomerDto = customerService.createNewCustomer(createCustomerDto);
@@ -75,8 +76,12 @@ public class CustomerController {
 	public ResponseEntity<List<ResponseCustomerDto>> getAllCustomers(){
 		
 		List<ResponseCustomerDto> listToReturn = customerService.getAllCustomer();
-		
-		
+		return new ResponseEntity<>(listToReturn, HttpStatus.OK);
+	}
+
+	@GetMapping("/with_cars")
+	public ResponseEntity<List<ResponseCustomerDto>> getAllCustomersWithCars(){
+		List<ResponseCustomerDto> listToReturn = customerService.getAllCustomerWithCars();
 		return new ResponseEntity<>(listToReturn, HttpStatus.OK);
 	}
 	
@@ -103,9 +108,18 @@ public class CustomerController {
 		
 		return new ResponseEntity<>(listToReturn, HttpStatus.OK);
 	}
+
+	@GetMapping("/cust_for_order/{id}")
+	public ResponseEntity<ResponseCustomerDto> getCustomerByIdWithCars(@PathVariable Long id){
+		ResponseCustomerDto listToReturn = customerService.findCustomersWithCarsById(id);
+		if (Objects.isNull(listToReturn)) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<>(listToReturn, HttpStatus.OK);
+	}
 	
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<ResponseCustomerDto> updateCustomer(@PathVariable Long id, @Valid @RequestBody UpdateCustomerDto updateCustomerDto){
 		ResponseCustomerDto listToReturn = customerService.updateCustomer(id, updateCustomerDto);
 		

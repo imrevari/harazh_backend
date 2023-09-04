@@ -1,9 +1,7 @@
 package ua.com.harazh.oblik.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,13 +9,11 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import ua.com.harazh.oblik.domain.OblikUser;
-import ua.com.harazh.oblik.domain.RepairOrder;
-import ua.com.harazh.oblik.domain.Work;
-import ua.com.harazh.oblik.domain.WorkType;
+import ua.com.harazh.oblik.domain.*;
 import ua.com.harazh.oblik.domain.dto.ResponseCompletedWorkDto;
 import ua.com.harazh.oblik.domain.dto.ResponseOrderDto;
 import ua.com.harazh.oblik.domain.dto.ResponseWorkDto;
+import ua.com.harazh.oblik.domain.dto.UsersAndTimeframeDto;
 import ua.com.harazh.oblik.exception.ExceptionWithMessage;
 import ua.com.harazh.oblik.repository.OrderRepository;
 import ua.com.harazh.oblik.repository.WorkRepository;
@@ -37,6 +33,12 @@ public class WorkService {
 	@Value("${work.wrongId}")
 	private String wrongWorkIdMessage;
 
+	@Value( "${work.cementBeforeDone}" )
+	private boolean CEMENT_BEFORE_DONE;
+
+	@Value( "${work.showNonClosedOrderWorks}" )
+	private boolean SHOW_NON_CLOSED_ORED_WORKS;
+
 	@Autowired
 	public WorkService(WorkTypeRepository workTypeRepository, WorkRepository workRepository, OrderRepository orderRepository) {
 		super();
@@ -50,9 +52,7 @@ public class WorkService {
 		Optional<WorkType> workTypeOpt = workTypeRepository.findById(workTypeId);
 		
 		if (workTypeOpt.isPresent()) {
-			
-			Work work = new Work(workTypeOpt.get());
-			work.setOblikUser(user);
+			Work work = new Work(workTypeOpt.get(), CEMENT_BEFORE_DONE, user);
 			return workRepository.save(work);
 		}
 		
@@ -70,20 +70,17 @@ public class WorkService {
 		
 	}
 	
-	public ResponseWorkDto setWorkTypeToNullAndCopyData(Work work) {
+	public ResponseWorkDto copyDataFromWorkType(Work work) {
 		
 		work.setPrice(work.getWorkType().getPrice());
 		work.setWorkName(work.getWorkType().getName());
-		work.setWorkType(null);
-		
+
 		return new ResponseWorkDto (workRepository.save(work));
-		
 	}
 	
 	public boolean deleteWork(Long id) {
 		
 		Work work = getWorkByIdOrThrowError(id);
-		
 		workRepository.delete(work);
 		
 		return true;
@@ -96,19 +93,33 @@ public class WorkService {
 		return workRepository.save(work);
 	}
 	
-	public List<ResponseCompletedWorkDto> getAllClosedDoneWorksByUser(OblikUser user){
+	public List<ResponseCompletedWorkDto> getAllDoneWorksByUser(OblikUser user){
 		
 		List<Work> listOfWorksDoneByUser = workRepository.findByOblikUserAndWorkDone(user, true);
 		
-		List<ResponseCompletedWorkDto> listToReturn= new ArrayList<>();
-		for (Work work : listOfWorksDoneByUser) {
-			ResponseOrderDto responseOrderDto = gerOrderDtoByWorkId(work.getId());
-			if (!Objects.isNull(responseOrderDto)) {
-				listToReturn.add(new ResponseCompletedWorkDto(work, responseOrderDto));
-			}
-		}
+		List<ResponseCompletedWorkDto> listToReturn= extendWorksWithOrder(listOfWorksDoneByUser);
+
+		Collections.sort(listToReturn, Comparator.comparing((ResponseCompletedWorkDto a) -> LocalDateTime.parse(a.getOrderClosed())));
 		
 		return listToReturn;
+	}
+
+	public List<ResponseCompletedWorkDto> getAllDoneWorksByUsersAndDates(List<OblikUser> users, UsersAndTimeframeDto usersAndTimeframeDto) {
+
+		List<Work> listOfWorksDoneByUsers = workRepository.findByOblikUserInAndDoneAtBetweenAndWorkDoneOrderByDoneAtAsc(
+				users,
+				LocalDateTime.parse(usersAndTimeframeDto.getFromDate()),
+			    LocalDateTime.parse(usersAndTimeframeDto.getToDate()),
+				true);
+		List<ResponseCompletedWorkDto> listToReturn = extendWorksWithOrder(listOfWorksDoneByUsers);
+		return listToReturn;
+	}
+
+	public void removeWorkCategoriesFromWorks(WorkType workType) {
+		List<Work> works = workRepository.findByWorkType(workType);
+		works.forEach(work -> {work.setWorkType(null);
+			workRepository.save(work);}
+			);
 	}
 	
 	private Work getWorkByIdOrThrowError(Long id) {
@@ -122,15 +133,23 @@ public class WorkService {
 	
 	private ResponseOrderDto gerOrderDtoByWorkId(Long Id) {
 		
-		Long orderId = orderRepository.findClosedOrderidByWorkId(Id);
+		Long orderId = (!SHOW_NON_CLOSED_ORED_WORKS) ? orderRepository.findClosedOrderidByWorkId(Id) :
+				orderRepository.findOrderidByWorkId(Id);
 		if(Objects.isNull(orderId)) {
 			return null;
 		}
 		Optional<RepairOrder> repairOrder = orderRepository.findById(orderId);
 		return new ResponseOrderDto(repairOrder.get());
 	}
-	
-	
-	
 
+	private List<ResponseCompletedWorkDto> extendWorksWithOrder(List<Work> listOfWorks){
+		List<ResponseCompletedWorkDto> listToReturn= new ArrayList<>();
+		for (Work work : listOfWorks) {
+			ResponseOrderDto responseOrderDto = gerOrderDtoByWorkId(work.getId());
+			if (!Objects.isNull(responseOrderDto)) {
+				listToReturn.add(new ResponseCompletedWorkDto(work, responseOrderDto));
+			}
+		}
+		return listToReturn;
+	}
 }

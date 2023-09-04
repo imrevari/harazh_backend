@@ -9,6 +9,8 @@ public class UserCreationDto {
 
 	@NotBlank(message = "{pass.notNull}")
 	private String password;
+
+	private Double percentage;
 	
 
 	public UserCreationDto() {
@@ -35,10 +37,11 @@ public class UserCreationDto {
 		this.password = password;
 	}
 
-	
-	
-	
-	
-	
+	public Double getPercentage() {
+		return percentage;
+	}
 
+	public void setPercentage(Double percentage) {
+		this.percentage = percentage;
+	}
 }

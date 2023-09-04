@@ -1,0 +1,2 @@
+ALTER TABLE work_type DROP COLUMN done_at;
+ALTER TABLE work ADD COLUMN done_at TIMESTAMP;

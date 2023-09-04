@@ -22,9 +22,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ua.com.harazh.oblik.domain.dto.AddPartCountDto;
-import ua.com.harazh.oblik.domain.dto.CreateOrderDto;
-import ua.com.harazh.oblik.domain.dto.ResponseOrderDto;
+import ua.com.harazh.oblik.domain.dto.*;
 import ua.com.harazh.oblik.service.OrderService;
 import ua.com.harazh.oblik.validator.order.AddPartCountValidator;
 import ua.com.harazh.oblik.validator.order.CreateOrdervalidator;
@@ -138,11 +136,26 @@ public class OrderController {
 	}
 	
 	@GetMapping("/")
-	public ResponseEntity<List<ResponseOrderDto>> getLastTenOpenedOrders(){
+	public ResponseEntity<List<ResponseOrderDto>> getAllOpenedOrders(){
 		
-		List<ResponseOrderDto> orders = orderService.getLastTenOpenedOrders();
-		
-		
+		List<ResponseOrderDto> orders = orderService.getAllOpenedOrders();
+
+		return new ResponseEntity<>(orders, HttpStatus.OK);
+	}
+
+	@GetMapping("/unpaid")
+	public ResponseEntity<List<ResponseOrderDto>> getAllClosedUnpaidOrders(){
+
+		List<ResponseOrderDto> orders = orderService.getAllClosedUnpaidOrders();
+
+		return new ResponseEntity<>(orders, HttpStatus.OK);
+	}
+
+	@PostMapping("/dates")
+	public ResponseEntity<List<ResponseOrderDto>> getAllOrdersBetweenDates(@RequestBody BetweenDatesDto betweenDatesDto){
+
+		List<ResponseOrderDto> orders = orderService.getAllOrdersBetweenDates(betweenDatesDto);
+
 		return new ResponseEntity<>(orders, HttpStatus.OK);
 	}
 
@@ -215,12 +228,21 @@ public class OrderController {
 		
 		return new ResponseEntity<>(orderWithClosedWork, HttpStatus.OK);
 	}
-	
+
+	@PostMapping("/update_description/{orderId}")
+	public ResponseEntity<ResponseOrderDto> updateDescription(@PathVariable Long orderId, @Valid @RequestBody UpdateDescriptionDto updateDescriptionDto){
+
+		ResponseOrderDto orderWithClosedWork = orderService.updateDescription(orderId, updateDescriptionDto);
+		if (Objects.isNull(orderWithClosedWork)) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<>(orderWithClosedWork, HttpStatus.OK);
+	}
+
 	@DeleteMapping("/remove_work/{orderId}/{workId}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<ResponseOrderDto> removeWork(@PathVariable Long orderId, @PathVariable Long workId){
 		ResponseOrderDto responseOrderDto = orderService.removeWork(orderId, workId);
-		
 		if (Objects.isNull(responseOrderDto)) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -229,7 +251,7 @@ public class OrderController {
 	}
 
 	@DeleteMapping("/remove_part/{orderId}/{partId}")
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SENIOR_USER')")
 	public ResponseEntity<ResponseOrderDto> removePartCount(@PathVariable Long orderId, @PathVariable Long partId){
 		ResponseOrderDto responseOrderDto = orderService.removePartCount(orderId, partId);
 		

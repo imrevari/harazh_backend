@@ -1,10 +1,12 @@
 package ua.com.harazh.oblik.domain;
 
 public enum Role {
-	
-	ROLE_ADMIN("адмiн"),
 
-    ROLE_USER("майстер");
+    ROLE_ADMIN("адмiн"),
+
+    ROLE_SENIOR_USER("майстер"),
+
+    ROLE_JUNIOR_USER("помічник");
 
     private String displayedname;
 

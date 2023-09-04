@@ -9,6 +9,8 @@ public class UpdateUserDto {
 	
 	private Long id;
 
+	private Double percentage;
+
 	public UpdateUserDto() {
 		super();
 	}
@@ -36,8 +38,12 @@ public class UpdateUserDto {
 	public void setId(Long id) {
 		this.id = id;
 	}
-	
-	
-	
 
+	public Double getPercentage() {
+		return percentage;
+	}
+
+	public void setPercentage(Double percentage) {
+		this.percentage = percentage;
+	}
 }
